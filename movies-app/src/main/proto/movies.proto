@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+
+package com.rationaleemotions.generated;
+
+
+service MovieService {
+	rpc getMovieDetails(MovieRequest) returns (MovieInformation) {}
+	rpc upcomingMovies(ListMovieRequest) returns (MovieInformation) {}
+}
+
+message MovieRequest {
+	repeated uint32 movieId = 1;
+}
+
+message MovieInformation {
+	repeated BasicMovieDetails movieInfo = 1;
+}
+
+message ListMovieRequest {
+	string language = 1;
+}
+
+message BasicMovieDetails {
+	uint32 movieId = 1;
+	string language = 2;
+	string movieName = 3;
+	uint32 durationInMins = 4;
+	string director = 5;
+}
