@@ -19,3 +19,5 @@
 8. Once the images have been built now deploy the images into kubernetes using the shell script `./install-to-k8s.sh`
 9. Now you can open up an RPC client such as grpcurl (or) BloomRPC and then interact with the service. Try accessing the end point `com.rationaleemotions.generated.DashboardService.dashBoardDetails` with the username as `rajnikanth`
 10. Remember to run (10) in the same terminal wherein you ran (6)
+
+You can find additional instructions in [this gist of mine](https://gist.github.com/krmahadevan/f67ba986d153c05ca899f9eb6649de5d)
