@@ -9,9 +9,8 @@
 5. [grpCurl](https://github.com/fullstorydev/grpcurl) is installed (This is just for testing needs)
 6. The command `docker ps` works fine (This is to just test if docker is up and running properly)
 7. minikube add-ons enabled using the commands:
-
-    a. `minikube addons enable dashboard`
-    b. `minikube addons enable metrics-server`
+	* `minikube addons enable dashboard`
+	* `minikube addons enable metrics-server`
 
 8. [gRPC benchmarking and load testing tool](https://ghz.sh/) is installed.
 
