@@ -18,6 +18,7 @@ import io.quarkus.grpc.GrpcService;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.tuples.Tuple2;
 import java.util.List;
+import org.jboss.logging.Logger;
 
 @GrpcService
 public class DashboardServiceImpl implements DashboardService {
@@ -28,8 +29,11 @@ public class DashboardServiceImpl implements DashboardService {
   @GrpcClient("movie")
   MovieService movieService;
 
+  private static final Logger LOGGER = Logger.getLogger(DashboardServiceImpl.class);
+
   @Override
   public Uni<DashboardResponse> dashBoardDetails(DashboardRequest request) {
+    LOGGER.info("Obtained a request for user :" + request.getUserName());
     Builder builder = DashboardResponse.newBuilder();
     return Uni.combine()
         .all()
@@ -40,6 +44,8 @@ public class DashboardServiceImpl implements DashboardService {
         .onItem()
         .transformToUni(tuple -> {
           Preferences prefs = tuple.getItem2();
+          LOGGER.info("Obtained the preferences :" + prefs);
+          LOGGER.info("Obtained the Basic Information :" + tuple.getItem1());
           return Uni.combine()
               .all()
               .unis(

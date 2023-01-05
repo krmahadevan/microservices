@@ -1,0 +1,33 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: dashboard-gateway
+spec:
+  selector:
+    istio: ingressgateway # use istio default controller
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: GRPC
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: dashboard
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - dashboard-gateway
+  http:
+  - match:
+    - uri:
+        prefix: /com.rationaleemotions.generated.DashboardService
+    route:
+    - destination:
+        host: dashboard-app
+        port:
+          number: 10030

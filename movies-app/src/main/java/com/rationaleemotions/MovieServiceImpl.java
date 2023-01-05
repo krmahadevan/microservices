@@ -13,16 +13,21 @@ import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 import javax.enterprise.event.Observes;
+import org.jboss.logging.Logger;
 
 @GrpcService
 public class MovieServiceImpl implements MovieService {
 
   private List<BasicMovieDetails> cache;
 
+  private static final Logger LOGGER = Logger.getLogger(MovieServiceImpl.class);
+
   @Override
   public Uni<MovieInformation> getMovieDetails(MovieRequest request) {
+    LOGGER.info("Obtained a request for movies :" + request.getMovieIdList());
     List<BasicMovieDetails> found = cache.stream()
         .filter(each -> request.getMovieIdList().contains(each.getMovieId()))
+        .peek(each -> LOGGER.info("Found the movie :" + each))
         .toList();
 
     return Uni.createFrom()
@@ -33,15 +38,18 @@ public class MovieServiceImpl implements MovieService {
 
   @Override
   public Uni<MovieInformation> upcomingMovies(ListMovieRequest request) {
+    LOGGER.info("Obtained a request for movies of language:" + request.getLanguage());
     return Uni.createFrom()
         .item(() -> MovieInformation.newBuilder()
             .addAllMovieInfo(cache.stream()
                 .filter(each -> each.getLanguage().equalsIgnoreCase(request.getLanguage()))
+                .peek(each -> LOGGER.info("Found the movie :" + each))
                 .toList()
             ).build());
   }
 
   void onApplicationStart(@Observes StartupEvent event) {
+    LOGGER.info("Initialising for the event :" + event);
     cache = Arrays.asList(
         englishMovie(11), englishMovie(12),
         englishMovie(21), englishMovie(22),

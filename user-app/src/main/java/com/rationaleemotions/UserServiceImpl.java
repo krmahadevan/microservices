@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import javax.enterprise.event.Observes;
+import org.jboss.logging.Logger;
 
 @SuppressWarnings("unused")
 @GrpcService
@@ -21,13 +22,18 @@ public class UserServiceImpl implements UserService {
 
   private final Map<String, Pair<BasicDetails, Preferences>> cache = new HashMap<>();
 
+  private static final Logger LOGGER = Logger.getLogger(UserServiceImpl.class);
+
   @Override
   public Uni<BasicDetails> basicUserInfo(BasicDetailsRequest request) {
+    LOGGER.info("Obtained a request for user :" + request.getUsername());
     return Uni.createFrom()
         .item(
             () -> {
               if (cache.containsKey(request.getUsername())) {
-                return cache.get(request.getUsername()).getLeft();
+                BasicDetails found = cache.get(request.getUsername()).getLeft();
+                LOGGER.info("Returning the found user " + found);
+                return found;
               }
               throw new IllegalArgumentException(request.getUsername() + " not found");
             }
@@ -36,11 +42,14 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public Uni<Preferences> preferences(PreferenceRequest request) {
+    LOGGER.info("Obtained a preferences request for user :" + request.getUsername());
     return Uni.createFrom()
         .item(
             () -> {
               if (cache.containsKey(request.getUsername())) {
-                return cache.get(request.getUsername()).getRight();
+                Preferences found = cache.get(request.getUsername()).getRight();
+                LOGGER.info("Returning the preferences found " + found);
+                return found;
               }
               throw new IllegalArgumentException(request.getUsername() + " not found");
             }
@@ -48,6 +57,7 @@ public class UserServiceImpl implements UserService {
   }
 
   void onApplicationStart(@Observes StartupEvent event) {
+    LOGGER.info("Initialising for the event :" + event);
     BasicDetails basic = BasicDetails.newBuilder()
         .setUsername("hujackman")
         .setEmailAddress("hugh.jackman@hollywood.com")

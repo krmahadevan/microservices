@@ -1,0 +1,133 @@
+
+# Creating a configuration map to for storing OTEL Configuration data related to 
+# receivers/exporters/processors/extensions/services 
+apiVersion: v1
+kind: ConfigMap
+metadata:
+ name: otel-collector-conf
+ namespace: istio-system
+ labels:
+   app: opentelemetry
+   component: otel-collector-conf
+data:
+ otel-collector-config: |
+   receivers:
+     otlp:
+       protocols:
+         grpc:
+         http:
+   exporters:
+     jaeger:
+       endpoint: jaeger-collector:14250
+       tls:
+         insecure: true 
+     logging:
+   processors:
+     batch:
+     resource:
+       attributes:
+         - key: test.key
+           value: "test-value"
+           action: insert
+   extensions:
+     health_check:
+     zpages:
+       endpoint: :55679
+   service:
+     telemetry:
+       logs:
+         level: "debug"
+     extensions: [zpages, health_check]
+     pipelines:
+       traces:
+         receivers: [otlp]
+         processors: [batch]
+         exporters: [logging, jaeger]
+---
+# Creating a service that will represent the OTEL Collector
+apiVersion: v1
+kind: Service
+metadata:
+ name: otel-collector
+ namespace: istio-system
+ labels:
+   app: opentelemetry
+   component: otel-collector
+spec:
+ ports:
+   - name: otlp-grpc # Default endpoint for OpenTelemetry gRPC receiver.
+     port: 4317
+     protocol: TCP
+     targetPort: 4317
+   - name: otlp-http # Default endpoint for OpenTelemetry HTTP receiver.
+     port: 4318
+     protocol: TCP
+     targetPort: 4318
+   - name: zpages
+     port: 55679
+     protocol: TCP
+     targetPort: 55679
+   - name: health-check
+     port: 13133
+     protocol: TCP
+     targetPort: 13133
+ selector:
+   component: otel-collector
+---
+# Defining the actual POD that will run the OTEL Collector docker container
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+ name: otel-collector
+ namespace: istio-system
+ labels:
+   app: opentelemetry
+   component: otel-collector
+spec:
+ selector:
+   matchLabels:
+     app: opentelemetry
+     component: otel-collector
+ minReadySeconds: 5
+ replicas: 1
+ template:
+   metadata:
+     namespace: istio-system
+     labels:
+       app: opentelemetry
+       component: otel-collector
+   spec:
+     containers:
+       - command:
+           - '/otelcol'
+           - '--config=/conf/otel-collector-config.yaml'
+         image: otel/opentelemetry-collector:latest
+         name: otel-collector
+         resources:
+           limits:
+             cpu: '1'
+             memory: 2Gi
+           requests:
+             cpu: 200m
+             memory: 400Mi
+         ports:
+           - containerPort: 4317   #otlp grpc
+           - containerPort: 4318   # otlp http
+           - containerPort: 55679  # zpages
+           - containerPort: 13133  # health check
+         volumeMounts:
+           - name: otel-collector-config-vol
+             mountPath: /conf
+     # Here we are defining a volume, which would basically retrieve the data from the configMap
+     # whose name is "otel-collector-conf" (We created this earlier in the file)
+     # and whose contents will contain the data that represents the value of the single key 
+     # that we defined namely "otel-collector-config" and the contents should be written into
+     # a path called "otel-collector-config.yaml" which gets mounted to the pod via "volumeMounts"
+     # under the path "/conf"
+     volumes:
+       - configMap:
+           name: otel-collector-conf
+           items:
+             - key: otel-collector-config
+               path: otel-collector-config.yaml
+         name: otel-collector-config-vol            
