@@ -9,24 +9,27 @@
 5. [grpCurl](https://github.com/fullstorydev/grpcurl) is installed (This is just for testing needs)
 6. The command `docker ps` works fine (This is to just test if docker is up and running properly)
 7. minikube add-ons enabled using the commands:
-  a. `minikube addons enable dashboard`
-  b. `minikube addons enable metrics-server`
+
+    a. `minikube addons enable dashboard`
+    b. `minikube addons enable metrics-server`
+
 8. [gRPC benchmarking and load testing tool](https://ghz.sh/) is installed.
 
 ## Steps to be followed after cloning this repository.
 
 1. Start minikube using the command `minikube start --cpus 6 --memory 8192`
-2. Open up the tunnel in a new terminal using `minikube tunnel` (Remember to kill this and restart this, everytime you delete your deployment and trigger a fresh one so that the request reaches your k8s cluster)
-3. Install istio on your k8s cluster via `istioctl install`
-4. Install all the istio default addons via `kubectl apply -f ~/tools/istio/istio-1.16.1/samples/addons` (Here we are assuming that the istio installation directory is `~/tools/istio/istio-1.16.1`). This will help us view the [Kiali](https://kiali.io/), [Grafana](https://grafana.com/), [Prometheus](https://prometheus.io/), [Jaegar](https://www.jaegertracing.io/) dashboards.
-5. Install the otel collector (Open Telemetry Collector) by running `kubectl apply -f deploy/otel-collector-config.yml` This will ensure that our distributed tracing works fine.
-6. Create a namespace (This is where our apps will be deployed) via `kubectl create ns rationale-emotions`. For additional details read at the bottom.
-7. Enable Envoy proxy auto injection via Istio: `kubectl label ns rationale-emotions istio-injection=enabled`
-8. Setup minikube docker daemon for accessing our locally built image: `eval $(minikube -p minikube docker-env)`
-9. Build the docker images using `./mvnw clean package -Dquarkus.container-image.build=true`
-10. Once the images have been built now deploy the images into kubernetes using the shell script `./install-to-k8s.sh rationale-emotions` (Here `rationale-emotions` is our namespace)
+everytime you delete your deployment and trigger a fresh one so that the request reaches your k8s cluster)
+2. Install istio on your k8s cluster via `istioctl install`
+3. Install all the istio default addons via `kubectl apply -f ~/tools/istio/istio-1.16.1/samples/addons` (Here we are assuming that the istio installation directory is `~/tools/istio/istio-1.16.1`). This will help us view the [Kiali](https://kiali.io/), [Grafana](https://grafana.com/), [Prometheus](https://prometheus.io/), [Jaegar](https://www.jaegertracing.io/) dashboards.
+4. Install the otel collector (Open Telemetry Collector) by running `kubectl apply -f deploy/otel-collector-config.yml` This will ensure that our distributed tracing works fine.
+5. Create a namespace (This is where our apps will be deployed) via `kubectl create ns rationale-emotions`. For additional details read at the bottom.
+6. Enable Envoy proxy auto injection via Istio: `kubectl label ns rationale-emotions istio-injection=enabled`
+7. Setup minikube docker daemon for accessing our locally built image: `eval $(minikube -p minikube docker-env)`
+8. Build the docker images using `./mvnw clean package -Dquarkus.container-image.build=true`
+9. Once the images have been built now deploy the images into kubernetes using the shell script `./install-to-k8s.sh rationale-emotions` (Here `rationale-emotions` is our namespace)
+10. Open up the tunnel in a new terminal using `minikube tunnel` (Remember to kill this and restart this, 
 11. Now you can open up an RPC client such as grpcurl (or) BloomRPC and then interact with the service. Try accessing the end point `com.rationaleemotions.generated.DashboardService.dashBoardDetails` with the username as `rajnikanth`
-12. Remember to run (9) in the same terminal wherein you ran (8)
+12. Remember to run (8) in the same terminal wherein you ran (7)
 13. If you would like to delete our app, run the shell script `./delete-from-k8s.sh rationale-emotions`
 14. If you would like to generate the kubernetes manifest files (Yes, Quarkus lets you generate them too!!!) then you can do it using `./mvnw clean package`
 15. To view the Jaegar dashboard you can run `istioctl dashboard jaeger` (In a new terminal because this should be running)
@@ -97,6 +100,7 @@ There are some useful shell scripts created.
 
 1. `istioctl dashboard jaeger` - Opens up the Jaegar UI
 2. `istioctl dashboard` - Tells you what other things you can open up.
+3. `minikube dashboard` - Opens up the Minikube dashboard which shows the internals of the k8s cluster.
 
 
 #### Namespaces
